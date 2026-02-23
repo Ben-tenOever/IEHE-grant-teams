@@ -1,0 +1,103 @@
+
+/* team pages styling */
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.2rem;
+}
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.search {
+  flex: 1;
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+.search input {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 10px;
+  font-size: 1rem;
+}
+.count {
+  opacity: 0.85;
+  white-space: nowrap;
+}
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1rem 1rem 0.8rem 1rem;
+  margin: 0.9rem 0;
+  box-shadow: 0 6px 22px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.card-title a {
+  color: #410093;
+  text-decoration: none;
+}
+.card-title a:hover {
+  text-decoration: underline;
+}
+.card-title {
+  font-size: 1.05rem;
+  margin-bottom: 0.25rem;
+}
+.card-subtitle {
+  font-size: 0.92rem;
+  opacity: 0.85;
+}
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.8rem;
+}
+.pill {
+  display: inline-block;
+  background: rgba(65,0,147,0.08);
+  color: #2a0f66;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+}
+.details {
+  margin-top: 0.8rem;
+}
+.summary {
+  cursor: pointer;
+  color: #333;
+  opacity: 0.9;
+}
+.section {
+  margin-top: 0.75rem;
+}
+.section-label {
+  font-size: 0.9rem;
+  opacity: 0.75;
+  margin-bottom: 0.25rem;
+}
+.section-text {
+  line-height: 1.35;
+}
+.aims {
+  margin: 0.4rem 0 0 1.1rem;
+}
+.error {
+  color: #8a0034;
+}
+.footer {
+  opacity: 0.8;
+  font-size: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.pill{text-decoration:none;}
+.pill:visited{color:#2a0f66;}
+
+.meta-value a, .card-subtitle a { text-decoration: underline; }

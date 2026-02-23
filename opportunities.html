@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Active opportunities</title>
+  <style>
+    :root { --bg:#f5f5f7; --text:#222; --muted:#666; --card:#fff; --border:#e6e6ea; --nyu:#410093; --nyu2:#5f2ca1; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg); color:var(--text); }
+    header { background:linear-gradient(90deg,var(--nyu),var(--nyu2)); color:#fff; padding:22px 24px; }
+    header h1 { margin:0 0 6px 0; font-size:22px; font-weight:700; }
+    header p { margin:0; opacity:.92; }
+    .tabs { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+    .tab { display:inline-block; color:#fff; text-decoration:none; opacity:.96; padding:8px 12px; border:1px solid rgba(255,255,255,.30); border-radius:999px; }
+    .tab:hover { opacity:1; border-color:rgba(255,255,255,.55); }
+    main { max-width:1180px; margin:0 auto; padding:18px 16px 44px 16px; }
+    .panel { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; box-shadow:0 6px 18px rgba(0,0,0,.06); }
+    .controls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    input[type="search"] { width:min(620px,100%); padding:10px 12px; border-radius:12px; border:1px solid var(--border); outline:none; }
+    select { padding:10px 12px; border-radius:12px; border:1px solid var(--border); }
+    table { width:100%; border-collapse:collapse; }
+    th, td { text-align:left; padding:10px 10px; border-bottom:1px solid var(--border); vertical-align:top; }
+    th { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+    a { color:var(--nyu); }
+    .small { color:var(--muted); font-size:13px; line-height:1.35; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Active opportunities</h1>
+    <p>Posted opportunities with close date today or later</p>
+    <div class="tabs">
+      <a class="tab" href="teams_two.html">Paired teams</a>
+      <a class="tab" href="teams_programs.html">Team collaborations</a>
+      <a class="tab" href="index.html">Faculty</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="panel">
+      <div class="controls">
+        <input id="q" type="search" placeholder="Search opportunities"/>
+        <select id="agency"></select>
+      </div>
+      <div class="small" id="count" style="margin-top:10px"></div>
+    </div>
+
+    <div style="height:14px"></div>
+
+    <div class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th>Close date</th>
+            <th>Agency</th>
+            <th>Opportunity</th>
+            <th>Ceiling</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="data/opportunities_data.js"></script>
+  <script>
+    const opps = window.__OPPORTUNITIES__ || [];
+
+    function norm(s){ return (s || '').toLowerCase(); }
+    function uniq(arr){ return Array.from(new Set(arr)); }
+
+    const agencySel = document.getElementById('agency');
+    const qEl = document.getElementById('q');
+
+    const agencies = ['All'].concat(uniq(opps.map(o => o.top_level_agency_name || o.agency_name).filter(Boolean)).sort());
+    agencySel.innerHTML = agencies.map(a => `<option value="${a}">${a}</option>`).join('');
+
+    const state = { q: '', agency: 'All' };
+
+    function money(x){
+      const n = Number(x);
+      if(!Number.isFinite(n)) return '';
+      try { return new Intl.NumberFormat(undefined, {style:'currency', currency:'USD', maximumFractionDigits:0}).format(n); }
+      catch { return '$' + Math.round(n).toString(); }
+    }
+
+    function row(o){
+      const agency = o.top_level_agency_name || o.agency_name || '';
+      const url = o.opportunity_url || o.additional_info_url || '';
+      const title = o.opportunity_title || '';
+      const num = o.opportunity_number || '';
+      return `
+        <tr>
+          <td>${o.close_date || ''}</td>
+          <td>${agency}</td>
+          <td>
+            <div><a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a></div>
+            <div class="small">${num}</div>
+          </td>
+          <td>${money(o.award_ceiling)}</td>
+        </tr>
+      `;
+    }
+
+    function hay(o){
+      return [o.opportunity_title, o.opportunity_number, o.agency_name, o.top_level_agency_name, o.summary_description, o.applicant_eligibility_description]
+        .map(x => (x || '')).join(' ').toLowerCase();
+    }
+
+    function render(){
+      const q = norm(state.q);
+      const filtered = opps.filter(o => {
+        const agency = o.top_level_agency_name || o.agency_name || '';
+        if(state.agency !== 'All' && agency !== state.agency) return false;
+        if(!q) return true;
+        return hay(o).includes(q);
+      });
+
+      document.getElementById('count').textContent = `${filtered.length} opportunities shown`;
+      document.getElementById('rows').innerHTML = filtered.slice(0, 1000).map(row).join('');
+    }
+
+    qEl.addEventListener('input', e => { state.q = e.target.value; render(); });
+    agencySel.addEventListener('change', e => { state.agency = e.target.value; render(); });
+
+    render();
+  </script>
+</body>
+</html>

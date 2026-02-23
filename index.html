@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>IEHE Grant Teams</title>
+  <style>
+    :root { --bg:#f5f5f7; --text:#222; --muted:#666; --card:#fff; --border:#e6e6ea; --nyu:#410093; --nyu2:#5f2ca1; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg); color:var(--text); }
+    header { background:linear-gradient(90deg,var(--nyu),var(--nyu2)); color:#fff; padding:22px 24px; }
+    header h1 { margin:0 0 6px 0; font-size:22px; font-weight:700; }
+    header p { margin:0; opacity:.92; }
+    .tabs { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+    .tab { display:inline-block; color:#fff; text-decoration:none; opacity:.96; padding:8px 12px; border:1px solid rgba(255,255,255,.30); border-radius:999px; }
+    .tab:hover { opacity:1; border-color:rgba(255,255,255,.55); }
+    main { max-width:1180px; margin:0 auto; padding:18px 16px 44px 16px; }
+    .panel { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; box-shadow:0 6px 18px rgba(0,0,0,.06); }
+    .hero { display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+    @media (max-width: 920px){ .hero{ grid-template-columns:1fr; } }
+    .controls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    input[type="search"] { width:min(520px,100%); padding:10px 12px; border-radius:12px; border:1px solid var(--border); outline:none; }
+    select { padding:10px 12px; border-radius:12px; border:1px solid var(--border); }
+    .small { color:var(--muted); font-size:13px; line-height:1.35; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(360px,1fr)); gap:14px; margin-top:14px; }
+    details.fcard { background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:0 6px 18px rgba(0,0,0,.06); overflow:hidden; }
+    details.fcard > summary { list-style:none; cursor:pointer; padding:14px; }
+    details.fcard > summary::-webkit-details-marker { display:none; }
+    .name { font-size:18px; font-weight:700; margin:0; }
+    .subtitle { margin-top:4px; }
+    .badges { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .badge { font-size:12px; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:#fafafa; }
+    .snippet { margin-top:10px; line-height:1.55; }
+    .expanded { border-top:1px solid var(--border); padding:14px; }
+    .section { margin-top:12px; }
+    .section:first-child { margin-top:0; }
+    .label { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+    .content { margin-top:6px; line-height:1.55; }
+    ul { margin:8px 0 0 18px; padding:0; }
+    li { margin:6px 0; }
+    .actions { margin-top:10px; display:flex; gap:10px; flex-wrap:wrap; }
+    .action { display:inline-block; padding:8px 10px; border-radius:12px; border:1px solid var(--border); background:#fff; color:var(--nyu); text-decoration:none; }
+    .action:hover { border-color:rgba(65,0,147,.35); }
+    footer { color:var(--muted); font-size:12px; padding:18px 0 0 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>IEHE Grant Teams</h1>
+    <p>Faculty profiles, active federal opportunities, and suggested teams</p>
+    <div class="tabs">
+      <a class="tab" href="teams_two.html">Paired teams</a>
+      <a class="tab" href="teams_programs.html">Team collaborations</a>
+      <a class="tab" href="opportunities.html">Active opportunities</a>
+      <a class="tab" href="faculty.html">Faculty directory</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div class="panel">
+        <div class="small" id="overviewText">Loading overview</div>
+        <div class="small" id="overviewStats" style="margin-top:10px"></div>
+      </div>
+      <div class="panel">
+        <div class="controls">
+          <input id="q" type="search" placeholder="Search faculty"/>
+          <select id="dept"></select>
+        </div>
+        <div class="small" id="count" style="margin-top:10px"></div>
+        <div class="actions" style="margin-top:12px">
+          <a class="action" href="teams_two.html">Paired teams</a>
+          <a class="action" href="teams_programs.html">Team collaborations</a>
+          <a class="action" href="opportunities.html">Active opportunities</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+    <footer>Click a profile to expand details</footer>
+  </main>
+
+  <script src="data/faculty_data.js"></script>
+  <script>
+    const d = window.__FACULTY_DATA__;
+
+    function norm(s){ return (s || '').toLowerCase(); }
+    function uniq(arr){ return Array.from(new Set(arr)); }
+
+    function facultyText(f){
+      return [
+        f.name, f.title,
+        (f.affiliations||[]).join(' '),
+        f.lab_synopsis||'',
+        f.common_experiments_raw||'',
+        (f.research_keywords||[]).join(' '),
+        (f.experimental_capabilities||[]).join(' '),
+        (f.complementary_areas||[]).join(' ')
+      ].join(' ');
+    }
+
+    function ul(items){
+      if(!items || !items.length) return '<div class="small">None listed</div>';
+      return '<ul>' + items.map(x => `<li>${x}</li>`).join('') + '</ul>';
+    }
+
+    function badges(f){
+      return (f.affiliations||[]).map(x => `<span class="badge">${x}</span>`).join('');
+    }
+
+    function card(f){
+      const syn = (f.lab_synopsis || '').trim();
+      const snippet = syn.length ? (syn.slice(0, 240) + (syn.length > 240 ? '…' : '')) : '';
+      const common = (f.common_experiments_raw || '').trim();
+      return `
+        <details class="fcard">
+          <summary>
+            <div>
+              <div class="name">${f.name || ''}</div>
+              <div class="small subtitle">${(f.title || '').trim()}</div>
+              <div class="badges">${badges(f)}</div>
+              ${snippet ? `<div class="small snippet">${snippet}</div>` : ''}
+            </div>
+          </summary>
+          <div class="expanded">
+            <div class="section">
+              <div class="label">Lab synopsis</div>
+              <div class="content">${(f.lab_synopsis || '').replaceAll('\n','<br/>') || '<span class="small">None listed</span>'}</div>
+            </div>
+            <div class="section">
+              <div class="label">Common platforms and experiments</div>
+              <div class="content">${common ? common.replaceAll('\n','<br/>') : '<span class="small">None listed</span>'}</div>
+            </div>
+            <div class="section">
+              <div class="label">Topic tags</div>
+              <div class="content">${ul(f.research_keywords)}</div>
+            </div>
+            <div class="section">
+              <div class="label">Methods and implementation tags</div>
+              <div class="content">${ul(f.complementary_areas)}</div>
+            </div>
+            <div class="actions">
+              <a class="action" href="profile.html?id=${encodeURIComponent(f.faculty_id)}">Open standalone profile</a>
+            </div>
+          </div>
+        </details>
+      `;
+    }
+
+    const deptSel = document.getElementById('dept');
+    const qEl = document.getElementById('q');
+
+    const depts = ['All'].concat(uniq(d.faculty.flatMap(f => f.affiliations || [])).sort());
+    deptSel.innerHTML = depts.map(x => `<option value="${x}">${x}</option>`).join('');
+
+    const state = { q: '', dept: 'All' };
+
+    function topCounts(items, n){
+      const m = new Map();
+      items.forEach(x => { if(!x) return; m.set(x, (m.get(x)||0)+1); });
+      return Array.from(m.entries()).sort((a,b)=>b[1]-a[1]).slice(0,n);
+    }
+
+    function renderOverview(hits){
+      const overviewText = document.getElementById('overviewText');
+      const overviewStats = document.getElementById('overviewStats');
+      const total = d.faculty.length;
+      overviewText.textContent = `${hits.length} of ${total} faculty shown`;
+
+      const affCounts = topCounts(hits.flatMap(f => f.affiliations || []), 6);
+      overviewStats.innerHTML = affCounts.length
+        ? `<div class="label">Top affiliations</div><div class="small">${affCounts.map(([x,c]) => `${x} (${c})`).join(', ')}</div>`
+        : '';
+    }
+
+    function render(){
+      const q = norm(state.q);
+      const hits = d.faculty.filter(f => {
+        if(state.dept !== 'All' && !(f.affiliations||[]).includes(state.dept)) return false;
+        if(!q) return true;
+        return norm(facultyText(f)).includes(q);
+      });
+      document.getElementById('count').textContent = `${hits.length} faculty shown`;
+      document.getElementById('grid').innerHTML = hits.map(card).join('');
+      renderOverview(hits);
+    }
+
+    qEl.addEventListener('input', e => { state.q = e.target.value; render(); });
+    deptSel.addEventListener('change', e => { state.dept = e.target.value; render(); });
+
+    render();
+  </script>
+</body>
+</html>
