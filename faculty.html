@@ -1,71 +1,41 @@
 <!doctype html>
 <html lang="en"><head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>IEHE Faculty</title>
-<link rel="stylesheet" href="teams.css" />
+<link rel="stylesheet" href="teams.css">
 </head><body>
 <header>
-  <div class="container">
-    <div class="brand">
-      <div class="brand-title">IEHE Grant Teams</div>
-      <div class="brand-subtitle">Faculty scoped team suggestions</div>
-    </div>
-  </div>
+  <h1>AI Grant and Collaboration Initiative</h1>
+  <p>Department of IEHE  NYU Grossman School of Medicine</p>
 </header>
 
-<nav class="tabs">
-  <div class="container tabs-inner">
-    <a class="tab" href="index.html">Home</a>
-    <a class="tab" href="faculty.html">Faculty profiles</a>
-    <a class="tab" href="teams_two.html">Pairs</a>
-    <a class="tab" href="teams_three_plus.html">Teams of three or more</a>
-    <a class="tab" href="resources.html">Resources and model systems</a>
-    <a class="tab" href="approaches.html">Experimental approaches</a>
-  </div>
+<nav>
+
+  <a href="index.html">Home</a>
+  <a href="faculty.html" aria-current="page">Faculty profiles</a>
+  <a href="teams_two.html">Pairs</a>
+  <a href="teams_three_plus.html">Teams of three or more</a>
+  <a href="resources.html">Resources and model systems</a>
+  <a href="approaches.html">Experimental approaches</a>
 </nav>
-<main id="app" class="container page">
-  <div class="card" style="padding:16px;">Loading faculty…</div>
+
+<main class="container">
+  <h1>Faculty profiles</h1>
+  <div id="cards" class="grid"></div>
 </main>
 <script>
 (function(){
-  var app = document.getElementById("app");
-  function esc(s) {
-  s = String(s == null ? "" : s);
-  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-}
-function loadJson(path, cb) {
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", path + "?cb=" + Date.now(), true);
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState !== 4) return;
-    if (xhr.status < 200 || xhr.status >= 300) return cb(new Error("Failed to load " + path + " status " + xhr.status));
-    try { cb(null, JSON.parse(xhr.responseText)); }
-    catch (e) { cb(new Error("JSON parse error for " + path + ": " + e)); }
-  };
-  xhr.onerror = function () { cb(new Error("Network error loading " + path)); };
-  xhr.send(null);
-}
-  loadJson("data/faculty_index.json", function(err, faculty){
-    if (err) { app.innerHTML = '<pre style="white-space:pre-wrap; padding:16px;">'+esc(String(err))+'</pre>'; return; }
-    faculty = faculty || [];
-    faculty.sort(function(a,b){ return String(a.name||"").localeCompare(String(b.name||"")); });
-    var html = '<h1 class="page-title">Faculty profiles</h1><div class="page-subtitle">IEHE</div>';
-    html += '<div class="grid">';
-    for (var i=0;i<faculty.length;i++) {
-      var f = faculty[i] || {};
-      var id = encodeURIComponent(f.id || "");
-      var kw = Array.isArray(f.keywords) ? f.keywords.slice(0, 8) : [];
-      var kwHtml = kw.length ? ('<div class="pill-row">' + kw.map(function(k){return '<span class="pill">'+esc(k)+'</span>';}).join("") + '</div>') : "";
-      html += '<a class="card faculty-card" href="profile.html?id='+id+'">';
-      html += '<div class="card-title">'+esc(f.name||"")+'</div>';
-      html += '<div class="card-subtitle">'+esc(f.title||"")+'</div>';
-      html += '<div class="card-body">'+esc(f.summary||"")+'</div>';
-      html += kwHtml + '</a>';
-    }
-    html += '</div>';
-    app.innerHTML = html;
-  });
+function esc(s){s=String(s==null?"":s);return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+function loadJson(path, cb){var x=new XMLHttpRequest();x.open("GET",path+"?cb="+Date.now(),true);x.onreadystatechange=function(){if(x.readyState!==4)return;if(x.status<200||x.status>=300)return cb(new Error("Failed "+path+" "+x.status));try{cb(null,JSON.parse(x.responseText));}catch(e){cb(new Error("Parse "+path+" "+e));}};x.onerror=function(){cb(new Error("Network "+path));};x.send(null);}
+var cards=document.getElementById("cards");
+loadJson("data/faculty_index.json", function(err, faculty){
+  if(err){cards.innerHTML='<pre>'+esc(String(err))+'</pre>';return;}
+  faculty=faculty||[];
+  faculty.sort(function(a,b){return String(a.name||"").localeCompare(String(b.name||""));});
+  var html="";
+  for(var i=0;i<faculty.length;i++){var f=faculty[i]||{};var id=encodeURIComponent(f.id||"");html+='<a class="card" href="profile.html?id='+id+'"><div style="font-weight:700;">'+esc(f.name||"")+'</div><div style="opacity:.8;">'+esc(f.title||"")+'</div><div style="margin-top:8px;">'+esc(f.summary||"")+'</div></a>';}
+  cards.innerHTML=html;
+});
 })();
 </script>
 </body></html>
