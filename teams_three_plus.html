@@ -1,54 +1,124 @@
-<!doctype html><html lang="en"><head>
+<!doctype html>
+<html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>IEHE Teams of three or more</title><link rel="stylesheet" href="teams.css">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>IEHE Teams of three or more</title>
+<link rel="stylesheet" href="teams.css">
 </head><body>
-<header>
-  <h1>IEHE Grant Teams</h1>
-  <p>NYU Grossman School of Medicine</p>
-</header>
-<nav>
-  <a href="index.html">Home</a>
-  <a href="faculty.html">Faculty profiles</a>
-  <a href="teams_two.html">Pairs</a>
-  <a href="teams_three_plus.html">Teams of three or more</a>
-  <a href="resources.html">Resources and model systems</a>
-  <a href="approaches.html">Experimental approaches</a>
-</nav>
-<main class="container">
-  <h2>Teams of three or more</h2>
+<div class="container" style="max-width:1100px; margin:0 auto; padding:18px 16px;">
+  <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:baseline;">
+    <a href="index.html" style="text-decoration:none;">Home</a>
+    <a href="faculty.html" style="text-decoration:none;">Faculty profiles</a>
+    <a href="teams_two.html" style="text-decoration:none;">Pairs</a>
+    <a href="teams_three_plus.html" style="text-decoration:none;">Teams of three or more</a>
+  </div>
+</div>
+<main class="container" style="max-width:1100px;">
+  <h2 style="color:var(--nyu-purple); margin:0;">Teams of three or more</h2>
   <div id="teams"></div>
 </main>
-<script>(function(){function esc(s){s=String(s==null?"":s);return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
-function loadJson(path, cb){
-  var x=new XMLHttpRequest();
-  x.open("GET",path+"?cb="+Date.now(),true);
-  x.onreadystatechange=function(){
-    if(x.readyState!==4)return;
-    if(x.status<200||x.status>=300)return cb(new Error("Failed "+path+" "+x.status));
-    try{cb(null,JSON.parse(x.responseText));}catch(e){cb(new Error("Parse "+path+" "+e));}
-  };
-  x.onerror=function(){cb(new Error("Network "+path));};
-  x.send(null);
-}function splitNames(v){if(v==null)return[];if(Array.isArray(v))return v;return String(v).split(/[\n,;|]+/g).map(x=>x.trim()).filter(Boolean);}
-function membersOf(t){if(Array.isArray(t.members))return t.members;if(t.team_members)return splitNames(t.team_members);return [];}
-function isPair(t){var tt=String(t.team_type||t.team_size_category||"").toLowerCase();if(tt==="pair")return true;return membersOf(t).length===2;}
-function isThreePlus(t){var tt=String(t.team_type||t.team_size_category||"").toLowerCase();if(tt==="team")return true;return membersOf(t).length>=3;}
-var box=document.getElementById("teams");
-loadJson("data/faculty_index.json",function(e1,faculty){
-  if(e1){box.innerHTML="<pre>"+esc(String(e1))+"</pre>";return;}
-  loadJson("data/teams.json",function(e2,teams){
-    if(e2){box.innerHTML="<pre>"+esc(String(e2))+"</pre>";return;}
-    faculty=faculty||[];teams=teams||[];
-    var idByName={}; for(var i=0;i<faculty.length;i++)idByName[String(faculty[i].name||"").toLowerCase()]=faculty[i].id;
-    function mlink(name){var fid=idByName[String(name||"").toLowerCase()]||"";return fid?'<a href="profile.html?id='+encodeURIComponent(fid)+'">'+esc(name)+'</a>':esc(name);}
-    var keep=[];
-    for(var k=0;k<teams.length;k++){var t=teams[k]||{}; if("team"==="pair" && isPair(t))keep.push(t); if("team"==="team" && isThreePlus(t))keep.push(t);}
-    var html='<div style="opacity:.8;">Found: '+keep.length+'</div>';
-    for(var j=0;j<keep.length;j++){var t2=keep[j]||{};var m=membersOf(t2);var mhtml=m.map(mlink).join(", ");
-      html+='<div class="card" style="padding:16px; margin-top:12px;"><div style="font-weight:700;">'+esc(t2.team_name||t2.proposed_title||"")+'</div><div style="margin-top:8px;">'+mhtml+'</div></div>';
-    }
-    box.innerHTML=html;
+<script>
+window.__MODE__ = "team";
+window.__LABEL__ = "IEHE";
+(function(){
+  function esc(s){
+    s = String(s == null ? "" : s);
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+  function loadJson(path, cb){
+    var x=new XMLHttpRequest();
+    x.open("GET", path+"?cb="+Date.now(), true);
+    x.onreadystatechange=function(){
+      if(x.readyState!==4) return;
+      if(x.status<200||x.status>=300) return cb(new Error("Failed "+path+" "+x.status));
+      try{ cb(null, JSON.parse(x.responseText)); }catch(e){ cb(new Error("Parse "+path+" "+e)); }
+    };
+    x.onerror=function(){ cb(new Error("Network "+path)); };
+    x.send(null);
+  }
+  function splitNames(v){
+    if(v==null) return [];
+    if(Array.isArray(v)) return v;
+    return String(v).split(/[\n,;|]+/g).map(x=>x.trim()).filter(Boolean);
+  }
+  function membersOf(t){
+    if(Array.isArray(t.members)) return t.members;
+    if(t.team_members) return splitNames(t.team_members);
+    return [];
+  }
+  function isPair(t){
+    var tt=String(t.team_type||t.team_size_category||"").toLowerCase();
+    if(tt==="pair") return true;
+    return membersOf(t).length===2;
+  }
+  function isTeam(t){
+    var tt=String(t.team_type||t.team_size_category||"").toLowerCase();
+    if(tt==="team") return true;
+    return membersOf(t).length>=3;
+  }
+
+  var mode = window.__MODE__ || "pair";
+  var label = window.__LABEL__ || "";
+  var box = document.getElementById("teams");
+
+  loadJson("data/faculty_index.json", function(e1, faculty){
+    if(e1){ box.innerHTML="<pre style='white-space:pre-wrap; padding:16px;'>"+esc(String(e1))+"</pre>"; return; }
+    loadJson("data/teams.json", function(e2, teams){
+      if(e2){ box.innerHTML="<pre style='white-space:pre-wrap; padding:16px;'>"+esc(String(e2))+"</pre>"; return; }
+
+      faculty = faculty || [];
+      teams = teams || [];
+      var idByName = {};
+      for(var i=0;i<faculty.length;i++){
+        idByName[String(faculty[i].name||"").toLowerCase()] = faculty[i].id;
+      }
+      function mlink(name){
+        var fid = idByName[String(name||"").toLowerCase()] || "";
+        return fid ? '<a href="profile.html?id='+encodeURIComponent(fid)+'" style="text-decoration:none;">'+esc(name)+'</a>' : esc(name);
+      }
+
+      var keep = [];
+      for(var k=0;k<teams.length;k++){
+        var t = teams[k] || {};
+        if(mode==="pair" && isPair(t)) keep.push(t);
+        if(mode==="team" && isTeam(t)) keep.push(t);
+      }
+
+      var html = '<div style="opacity:.8;">'+label+' — Found: '+keep.length+'</div>';
+
+      for(var j=0;j<keep.length;j++){
+        var t2 = keep[j] || {};
+        var m = membersOf(t2);
+        var mhtml = m.map(mlink).join(", ");
+
+        html += '<div class="card" style="padding:16px; margin-top:12px;">';
+        html +=   '<div style="font-weight:800; font-size:1.08rem; color:var(--nyu-purple);">'+esc(t2.suggested_title || t2.team_name || "")+'</div>';
+        if(t2.opportunity_title){
+          html += '<div style="margin-top:8px; opacity:.9;">Opportunity: '+esc(t2.opportunity_title)+'</div>';
+        }
+        if(t2.opportunity_url){
+          html += '<div style="margin-top:6px; opacity:.9;"><a href="'+esc(t2.opportunity_url)+'" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">View announcement</a></div>';
+        }
+        html +=   '<div style="margin-top:10px; opacity:.9;">'+mhtml+'</div>';
+        if(t2.synopsis){
+          html += '<div style="margin-top:10px; line-height:1.45; opacity:.92;">'+esc(t2.synopsis)+'</div>';
+        }
+        if(t2.rationale_detailed){
+          html += '<div style="margin-top:10px; opacity:.9;">'+esc(t2.rationale_detailed)+'</div>';
+        }
+        if(Array.isArray(t2.suggested_aims) && t2.suggested_aims.length){
+          html += '<div style="margin-top:10px;"><span style="opacity:.75;">Suggested aims:</span><ul style="margin:6px 0 0 18px; padding:0;">'
+               + t2.suggested_aims.slice(0,3).map(a => '<li style="margin-top:6px;">'+esc(a)+'</li>').join("")
+               + '</ul></div>';
+        }
+        html += '</div>';
+      }
+
+      box.innerHTML = html;
+    });
   });
-});
-})();</script>
+})();
+</script>
 </body></html>
