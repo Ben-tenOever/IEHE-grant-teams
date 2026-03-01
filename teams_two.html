@@ -1,139 +1,105 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>IEHE Pairs</title>
-  <link rel="stylesheet" href="teams.css" />
-  <style>
-    main#app { display:block !important; min-height:240px; }
-  </style>
-</head>
-<body>
-<div class="container" style="max-width:1100px; margin:0 auto; padding:18px 16px;">
-  <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:baseline;">
-    <a href="index.html" style="text-decoration:none;">Home</a>
-    <a href="faculty.html" style="text-decoration:none;">Faculty profiles</a>
-    <a href="teams_two.html" style="text-decoration:none; font-weight:700;">Pairs</a>
-    <a href="teams_three_plus.html" style="text-decoration:none;">Teams of three or more</a>
-    <a href="resources.html" style="text-decoration:none;">Resources and model systems</a>
-    <a href="approaches.html" style="text-decoration:none;">Experimental approaches</a>
+<html lang="en"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>IEHE Pairs</title>
+<link rel="stylesheet" href="teams.css" />
+</head><body>
+<header>
+  <div class="container">
+    <div class="brand">
+      <div class="brand-title">IEHE Grant Teams</div>
+      <div class="brand-subtitle">Faculty scoped team suggestions</div>
+    </div>
   </div>
-</div>
+</header>
 
-<main id="app">
-  <div class="container" style="max-width:1100px; margin:0 auto; padding:24px 16px;">
-    Page loaded. Waiting for JavaScript…
+<nav class="tabs">
+  <div class="container tabs-inner">
+    <a class="tab" href="index.html">Home</a>
+    <a class="tab" href="faculty.html">Faculty profiles</a>
+    <a class="tab" href="teams_two.html">Pairs</a>
+    <a class="tab" href="teams_three_plus.html">Teams of three or more</a>
+    <a class="tab" href="resources.html">Resources and model systems</a>
+    <a class="tab" href="approaches.html">Experimental approaches</a>
   </div>
+</nav>
+<main id="app" class="container page">
+  <div class="card" style="padding:16px;">Loading…</div>
 </main>
-
 <script>
-(function () {
+(function(){
   var app = document.getElementById("app");
-
   function esc(s) {
-    s = String(s == null ? "" : s);
-    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-  }
-
-  function setHtml(html) { app.innerHTML = html; }
-
-  function loadJson(path, cb) {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", path + "?cb=" + Date.now(), true);
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState !== 4) return;
-      if (xhr.status < 200 || xhr.status >= 300) return cb(new Error("Failed to load " + path + " status " + xhr.status));
-      try { cb(null, JSON.parse(xhr.responseText)); }
-      catch (e) { cb(new Error("JSON parse error for " + path + ": " + e)); }
-    };
-    xhr.onerror = function () { cb(new Error("Network error loading " + path)); };
-    xhr.send(null);
-  }
-
+  s = String(s == null ? "" : s);
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function loadJson(path, cb) {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", path + "?cb=" + Date.now(), true);
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status < 200 || xhr.status >= 300) return cb(new Error("Failed to load " + path + " status " + xhr.status));
+    try { cb(null, JSON.parse(xhr.responseText)); }
+    catch (e) { cb(new Error("JSON parse error for " + path + ": " + e)); }
+  };
+  xhr.onerror = function () { cb(new Error("Network error loading " + path)); };
+  xhr.send(null);
+}
   function splitNames(v) {
     if (v == null) return [];
-    if (Array.isArray(v)) {
-      var out = [];
-      for (var i = 0; i < v.length; i++) out = out.concat(splitNames(v[i]));
-      return out;
-    }
-    if (typeof v === "string") {
-      return v.split(/[\n,;|]+/g).map(function(x){return x.trim();}).filter(Boolean);
-    }
+    if (Array.isArray(v)) return v;
+    return String(v).split(/[\n,;|]+/g).map(function(x){return x.trim();}).filter(Boolean);
+  }
+  function membersOf(t) {
+    if (Array.isArray(t.members)) return t.members;
+    if (t.team_members) return splitNames(t.team_members);
     return [];
   }
 
-  function getMembers(t) {
-    if (!t || typeof t !== "object") return [];
-    var out = [];
-    out = out.concat(splitNames(t.team_members));
-    out = out.concat(splitNames(t.members));
-    out = out.concat(splitNames(t.member_names));
-    out = out.concat(splitNames(t.team_members_raw));
-
-    var seen = {};
-    var uniq = [];
-    for (var i = 0; i < out.length; i++) {
-      var key = String(out[i]).toLowerCase();
-      if (!seen[key]) { seen[key] = 1; uniq.push(out[i]); }
-    }
-    return uniq;
-  }
-
-  setHtml('<div class="container" style="max-width:1100px; margin:0 auto; padding:24px 16px;">JavaScript started. Loading pairs…</div>');
-
-  loadJson("data/faculty_index.json", function (err1, faculty) {
-    if (err1) return setHtml('<pre style="white-space:pre-wrap; padding:16px;">' + esc(String(err1)) + '</pre>');
-    loadJson("data/teams.json", function (err2, teams) {
-      if (err2) return setHtml('<pre style="white-space:pre-wrap; padding:16px;">' + esc(String(err2)) + '</pre>');
-
+  loadJson("data/faculty_index.json", function(e1, faculty){
+    if (e1) { app.innerHTML = '<pre style="white-space:pre-wrap; padding:16px;">'+esc(String(e1))+'</pre>'; return; }
+    loadJson("data/teams.json", function(e2, teams){
+      if (e2) { app.innerHTML = '<pre style="white-space:pre-wrap; padding:16px;">'+esc(String(e2))+'</pre>'; return; }
+      faculty = faculty || []; teams = teams || [];
       var idByName = {};
-      for (var i = 0; i < (faculty || []).length; i++) {
-        idByName[String(faculty[i].name || "").toLowerCase()] = faculty[i].id;
-      }
-
+      for (var i=0;i<faculty.length;i++) idByName[String(faculty[i].name||"").toLowerCase()] = faculty[i].id;
       function memberLink(name) {
-        var fid = idByName[String(name || "").toLowerCase()] || "";
-        return fid ? '<a href="profile.html?id=' + encodeURIComponent(fid) + '" style="text-decoration:none;">' + esc(name) + '</a>' : esc(name);
+        var fid = idByName[String(name||"").toLowerCase()] || "";
+        return fid ? '<a href="profile.html?id='+encodeURIComponent(fid)+'">'+esc(name)+'</a>' : esc(name);
       }
-
-      var pairs = [];
-      for (var k = 0; k < (teams || []).length; k++) {
+      function isPair(t) {
+        var tt = String(t.team_type || t.team_size_category || "").toLowerCase();
+        if (tt === "pair") return true;
+        return membersOf(t).length === 2;
+      }
+      function isThreePlus(t) {
+        var tt = String(t.team_type || t.team_size_category || "").toLowerCase();
+        if (tt === "team") return true;
+        return membersOf(t).length >= 3;
+      }
+      var keep = [];
+      for (var k=0;k<teams.length;k++) {
         var t = teams[k] || {};
-        var m = getMembers(t);
-        if (m.length === 2) pairs.push({ t: t, m: m });
+        if ("pair" === "pair" && isPair(t)) keep.push(t);
+        if ("pair" === "team" && isThreePlus(t)) keep.push(t);
       }
-
-      var html = '<div class="container" style="max-width:1100px; margin:0 auto; padding:24px 16px;">';
-      html += '<h1 style="margin:0;">Pairs</h1>';
-      html += '<div style="opacity:.85; margin-top:6px;">IEHE</div>';
-      html += '<div style="opacity:.75; margin-top:6px;">Pairs found: ' + pairs.length + '</div>';
-      html += '<div style="margin-top:16px; display:flex; flex-direction:column; gap:12px;">';
-
-      for (var p = 0; p < pairs.length; p++) {
-        var row = pairs[p];
-        var t2 = row.t;
-        var mhtml = row.m.map(memberLink).join(", ");
-
-        html += '<div class="card" style="padding:16px;">';
-        html += '<div style="font-weight:700; font-size:1.05rem;">' + esc(t2.proposed_title || t2.team_name || t2.opportunity_title || "") + '</div>';
-        html += '<div style="opacity:.85; margin-top:6px;">' + mhtml + '</div>';
-        if (t2.opportunity_title) html += '<div style="margin-top:10px; opacity:.9;">Opportunity: ' + esc(t2.opportunity_title) + '</div>';
-        if (t2.rationale) html += '<div style="margin-top:10px; opacity:.9;">' + esc(t2.rationale) + '</div>';
-        if (t2.aims_or_projects) html += '<div style="margin-top:10px;"><span style="opacity:.8;">Aims or projects: </span>' + esc(t2.aims_or_projects) + '</div>';
+      var html = '<h1 class="page-title">Pairs</h1><div class="page-subtitle">IEHE</div>';
+      html += '<div class="page-subtitle">Found: '+keep.length+'</div>';
+      for (var j=0;j<keep.length;j++) {
+        var t2 = keep[j] || {};
+        var m = membersOf(t2);
+        var mhtml = m.map(memberLink).join(", ");
+        html += '<div class="card" style="padding:16px; margin-top:12px;">';
+        html += '<div class="card-title">'+esc(t2.team_name || t2.proposed_title || "")+'</div>';
+        html += '<div class="card-body" style="margin-top:8px;">'+mhtml+'</div>';
+        if (t2.opportunity_title) html += '<div class="card-body" style="margin-top:8px;">Opportunity: '+esc(t2.opportunity_title)+'</div>';
+        if (t2.rationale) html += '<div class="card-body" style="margin-top:8px;">'+esc(t2.rationale)+'</div>';
         html += '</div>';
       }
-
-      html += '</div></div>';
-      setHtml(html);
+      app.innerHTML = html;
     });
   });
-
 })();
 </script>
-</body>
-</html>
+</body></html>
