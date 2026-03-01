@@ -8,8 +8,8 @@
   <meta http-equiv="Expires" content="0" />
   <title>IEHE Teams</title>
   <link rel="stylesheet" href="teams.css" />
-  <style id="force-visible">
-    main#app { display:block !important; visibility:visible !important; opacity:1 !important; min-height:240px; }
+  <style>
+    main#app { display:block !important; min-height:240px; }
   </style>
 </head>
 <body>
@@ -47,43 +47,66 @@
     xhr.onreadystatechange = function () {
       if (xhr.readyState !== 4) return;
       if (xhr.status < 200 || xhr.status >= 300) return cb(new Error("Failed to load " + path + " status " + xhr.status));
-      try {
-        cb(null, JSON.parse(xhr.responseText));
-      } catch (e) {
-        cb(new Error("JSON parse error for " + path + ": " + e));
-      }
+      try { cb(null, JSON.parse(xhr.responseText)); }
+      catch (e) { cb(new Error("JSON parse error for " + path + ": " + e)); }
     };
     xhr.onerror = function () { cb(new Error("Network error loading " + path)); };
     xhr.send(null);
+  }
+
+  function splitNames(v) {
+    if (v == null) return [];
+    if (Array.isArray(v)) {
+      var out = [];
+      for (var i = 0; i < v.length; i++) out = out.concat(splitNames(v[i]));
+      return out;
+    }
+    if (typeof v === "string") {
+      return v.split(/[\n,;|]+/g).map(function(x){return x.trim();}).filter(Boolean);
+    }
+    return [];
+  }
+
+  function getMembers(t) {
+    if (!t || typeof t !== "object") return [];
+    var out = [];
+    out = out.concat(splitNames(t.team_members));
+    out = out.concat(splitNames(t.members));
+    out = out.concat(splitNames(t.member_names));
+    out = out.concat(splitNames(t.team_members_raw));
+
+    var seen = {};
+    var uniq = [];
+    for (var i = 0; i < out.length; i++) {
+      var key = String(out[i]).toLowerCase();
+      if (!seen[key]) { seen[key] = 1; uniq.push(out[i]); }
+    }
+    return uniq;
   }
 
   setHtml('<div class="container" style="max-width:1100px; margin:0 auto; padding:24px 16px;">JavaScript started. Loading teams…</div>');
 
   loadJson("data/faculty_index.json", function (err1, faculty) {
     if (err1) return setHtml('<pre style="white-space:pre-wrap; padding:16px;">' + esc(String(err1)) + '</pre>');
-    loadJson("data/teams.json", function (err2, rawTeams) {
+    loadJson("data/teams.json", function (err2, teams) {
       if (err2) return setHtml('<pre style="white-space:pre-wrap; padding:16px;">' + esc(String(err2)) + '</pre>');
 
-      var teams = Array.isArray(rawTeams) ? rawTeams : (rawTeams && (rawTeams.teams || rawTeams.items || rawTeams.data)) || [];
       var idByName = {};
-      (faculty || []).forEach(function (f) { idByName[String(f.name || "").toLowerCase()] = f.id; });
-
-      function membersOf(t) { return t.members || t.member_names || t.team_members || []; }
-      function idsOf(t) { return t.member_ids || t.members_ids || t.team_member_ids || []; }
-
-      function isThreePlus(t) {
-        var tt = String(t.team_type || "").toLowerCase();
-        if (tt === "team") return true;
-        var m = membersOf(t);
-        return Array.isArray(m) && m.length >= 3;
+      for (var i = 0; i < (faculty || []).length; i++) {
+        idByName[String(faculty[i].name || "").toLowerCase()] = faculty[i].id;
       }
 
-      function memberLink(name, id) {
-        var fid = id || idByName[String(name || "").toLowerCase()] || "";
+      function memberLink(name) {
+        var fid = idByName[String(name || "").toLowerCase()] || "";
         return fid ? '<a href="profile.html?id=' + encodeURIComponent(fid) + '" style="text-decoration:none;">' + esc(name) + '</a>' : esc(name);
       }
 
-      var big = teams.filter(isThreePlus);
+      var big = [];
+      for (var k = 0; k < (teams || []).length; k++) {
+        var t = teams[k] || {};
+        var m = getMembers(t);
+        if (m.length >= 3) big.push({ t: t, m: m });
+      }
 
       var html = '<div class="container" style="max-width:1100px; margin:0 auto; padding:24px 16px;">';
       html += '<h1 style="margin:0;">Teams of three or more</h1>';
@@ -91,20 +114,19 @@
       html += '<div style="opacity:.75; margin-top:6px;">Teams found: ' + big.length + '</div>';
       html += '<div style="margin-top:16px; display:flex; flex-direction:column; gap:12px;">';
 
-      big.forEach(function (t) {
-        var members = membersOf(t);
-        var ids = idsOf(t);
-        var mhtml = (Array.isArray(members) ? members : []).map(function (m, i) {
-          return memberLink(m, Array.isArray(ids) ? ids[i] : "");
-        }).join(", ");
+      for (var p = 0; p < big.length; p++) {
+        var row = big[p];
+        var t2 = row.t;
+        var mhtml = row.m.map(memberLink).join(", ");
 
         html += '<div class="card" style="padding:16px;">';
-        html += '<div style="font-weight:700; font-size:1.05rem;">' + esc(t.team_name || "") + '</div>';
+        html += '<div style="font-weight:700; font-size:1.05rem;">' + esc(t2.proposed_title || t2.team_name || t2.opportunity_title || "") + '</div>';
         html += '<div style="opacity:.85; margin-top:6px;">' + mhtml + '</div>';
-        if (t.opportunity_title) html += '<div style="margin-top:10px; opacity:.9;">Opportunity: ' + esc(t.opportunity_title) + '</div>';
-        if (t.rationale) html += '<div style="margin-top:10px; opacity:.9;">' + esc(t.rationale) + '</div>';
+        if (t2.opportunity_title) html += '<div style="margin-top:10px; opacity:.9;">Opportunity: ' + esc(t2.opportunity_title) + '</div>';
+        if (t2.rationale) html += '<div style="margin-top:10px; opacity:.9;">' + esc(t2.rationale) + '</div>';
+        if (t2.aims_or_projects) html += '<div style="margin-top:10px;"><span style="opacity:.8;">Aims or projects: </span>' + esc(t2.aims_or_projects) + '</div>';
         html += '</div>';
-      });
+      }
 
       html += '</div></div>';
       setHtml(html);
