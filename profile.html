@@ -24,20 +24,19 @@
 
 <script>
 (function(){
-  function esc(s) {
+  function esc(s){
   s = String(s == null ? "" : s);
   return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 }
-function loadJson(path, cb) {
+function loadJson(path, cb){
   var x = new XMLHttpRequest();
   x.open("GET", path + "?cb=" + Date.now(), true);
-  x.onreadystatechange = function() {
+  x.onreadystatechange = function(){
     if (x.readyState !== 4) return;
     if (x.status < 200 || x.status >= 300) return cb(new Error("Failed " + path + " " + x.status));
-    try { cb(null, JSON.parse(x.responseText)); }
-    catch(e) { cb(new Error("Parse " + path + " " + e)); }
+    try { cb(null, JSON.parse(x.responseText)); } catch(e){ cb(new Error("Parse " + path + " " + e)); }
   };
-  x.onerror = function() { cb(new Error("Network " + path)); };
+  x.onerror = function(){ cb(new Error("Network " + path)); };
   x.send(null);
 }
   function qp(n) {
@@ -47,12 +46,35 @@ function loadJson(path, cb) {
   var id = qp("id");
   var box = document.getElementById("profile");
 
+  function asList(v) {
+    if (!v) return [];
+    if (Array.isArray(v)) return v;
+    if (typeof v === "string") {
+      // split specialty areas like "A / B / C"
+      return v.split(/[\/;|]+/g).map(x=>x.trim()).filter(Boolean);
+    }
+    return [];
+  }
+
+  function section(title, inner) {
+    if (!inner) return "";
+    return '<div style="margin-top:16px; font-weight:650; color:var(--nyu-purple);">'+esc(title)+'</div>' + inner;
+  }
+
   function pills(items) {
-    items = Array.isArray(items) ? items : [];
+    items = asList(items);
     if (!items.length) return "";
-    return '<div class="pill-row" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">' +
-      items.map(function(x){return '<span class="pill pill-link" style="padding:4px 10px; border-radius:999px; opacity:.9;">'+esc(x)+'</span>';}).join("") +
+    return '<div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px;">' +
+      items.map(x => '<span class="pill pill-link" style="padding:4px 10px; border-radius:999px; opacity:.9;">'+esc(x)+'</span>').join("") +
       '</div>';
+  }
+
+  function bullets(items) {
+    items = asList(items);
+    if (!items.length) return "";
+    return '<div class="card" style="padding:16px; margin-top:8px;"><ul style="margin:0; padding-left:18px;">' +
+      items.map(x => '<li style="margin-top:6px;">'+esc(x)+'</li>').join("") +
+      '</ul></div>';
   }
 
   loadJson("data/faculty_index.json", function(err, faculty) {
@@ -70,32 +92,39 @@ function loadJson(path, cb) {
       return;
     }
 
-    var tracks = Array.isArray(f.tracks) ? f.tracks : [];
-    var spec = Array.isArray(f.specialty_areas) ? f.specialty_areas : [];
-    var rkw = Array.isArray(f.research_keywords) ? f.research_keywords : [];
-    var synopsis = f.lab_synopsis || f.summary || "";
-
     var html = "";
     html += "<h1 class='page-title' style='margin:12px 0 0 0; color:var(--nyu-purple);'>" + esc(f.name || "") + "</h1>";
     html += "<div class='page-subtitle' style='opacity:.85; margin-top:6px;'>" + esc(f.title || "") + "</div>";
+    html += section("Affiliations", pills(f.affiliations));
+    html += section("Tracks", pills(f.tracks));
+    html += section("Specialty areas", pills(f.specialty_areas));
 
-    if (tracks.length) {
-      html += "<div style='margin-top:14px; font-weight:650;'>Tracks</div>" + pills(tracks);
+    var syn = (f.lab_synopsis || f.summary || "").trim();
+    if (syn) {
+      html += section("Lab synopsis", '<div class="card" style="padding:16px; margin-top:8px; line-height:1.55;">'+esc(syn)+'</div>');
     }
-    if (spec.length) {
-      html += "<div style='margin-top:14px; font-weight:650;'>Specialty areas</div>" + pills(spec);
-    }
 
-    html += "<div style='margin-top:14px; font-weight:650;'>Lab synopsis</div>";
-    html += "<div class='card' style='padding:16px; margin-top:8px; line-height:1.5;'>" + esc(synopsis) + "</div>";
+    html += section("Common platforms and experiments", bullets(f.common_platforms_and_experiments || f.common_experiments_raw));
+    html += section("Research keywords", bullets(f.research_keywords));
+    html += section("Experimental capabilities", bullets(f.experimental_capabilities));
+    html += section("Model systems and disease focus", bullets(f.model_systems));
+    html += section("Complementary areas", bullets(f.complementary_areas));
+    html += section("Example grant directions", bullets(f.example_grant_directions));
 
-    if (rkw.length) {
-      html += "<div style='margin-top:14px; font-weight:650;'>Research keywords</div>";
-      html += "<div class='card' style='padding:16px; margin-top:8px;'><ul style='margin:0; padding-left:18px;'>";
-      for (var j=0;j<rkw.length;j++) {
-        html += "<li style='margin-top:6px;'>" + esc(rkw[j]) + "</li>";
-      }
-      html += "</ul></div>";
+    // publications
+    var pubs = Array.isArray(f.publications) ? f.publications : [];
+    if (!pubs.length) {
+      html += section("Publications ingested", '<div class="card" style="padding:16px; margin-top:8px;">No publications ingested yet.</div>');
+    } else {
+      var rows = pubs.map(function(p){
+        if (typeof p === "string") return '<li style="margin-top:6px;">'+esc(p)+'</li>';
+        var line = (p.title ? p.title : '') +
+                   (p.year ? ' ('+p.year+')' : '') +
+                   (p.venue ? ' — '+p.venue : '') +
+                   (p.journal ? ' — '+p.journal : '') ;
+        return '<li style="margin-top:6px;">'+esc(line)+'</li>';
+      }).join("");
+      html += section("Publications ingested", '<div class="card" style="padding:16px; margin-top:8px;"><ul style="margin:0; padding-left:18px;">'+rows+'</ul></div>');
     }
 
     box.innerHTML = html;
