@@ -1,43 +1,106 @@
-<!doctype html><html lang="en"><head>
+<!doctype html>
+<html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>IEHE Profile</title><link rel="stylesheet" href="teams.css">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>IEHE Faculty Profile</title>
+<link rel="stylesheet" href="teams.css">
 </head><body>
-<header>
-  <h1>IEHE Grant Teams</h1>
-  <p>NYU Grossman School of Medicine</p>
-</header>
-<nav>
-  <a href="index.html">Home</a>
-  <a href="faculty.html">Faculty profiles</a>
-  <a href="teams_two.html">Pairs</a>
-  <a href="teams_three_plus.html">Teams of three or more</a>
-  <a href="resources.html">Resources and model systems</a>
-  <a href="approaches.html">Experimental approaches</a>
-</nav>
-<main class="container">
-  <a href="faculty.html">Back to Faculty</a>
+
+<div class="container" style="max-width:1100px; margin:0 auto; padding:18px 16px;">
+  <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:baseline;">
+    <a href="index.html" style="text-decoration:none;">Home</a>
+    <a href="faculty.html" style="text-decoration:none;">Faculty profiles</a>
+    <a href="teams_two.html" style="text-decoration:none;">Pairs</a>
+    <a href="teams_three_plus.html" style="text-decoration:none;">Teams of three or more</a>
+  </div>
+</div>
+
+<main class="container page" style="max-width:1100px;">
+  <a href="faculty.html" class="back-link" style="text-decoration:none;">Back to Faculty</a>
   <div id="profile"></div>
 </main>
-<script>(function(){function esc(s){s=String(s==null?"":s);return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
-function loadJson(path, cb){
-  var x=new XMLHttpRequest();
-  x.open("GET",path+"?cb="+Date.now(),true);
-  x.onreadystatechange=function(){
-    if(x.readyState!==4)return;
-    if(x.status<200||x.status>=300)return cb(new Error("Failed "+path+" "+x.status));
-    try{cb(null,JSON.parse(x.responseText));}catch(e){cb(new Error("Parse "+path+" "+e));}
+
+<script>
+(function(){
+  function esc(s) {
+  s = String(s == null ? "" : s);
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function loadJson(path, cb) {
+  var x = new XMLHttpRequest();
+  x.open("GET", path + "?cb=" + Date.now(), true);
+  x.onreadystatechange = function() {
+    if (x.readyState !== 4) return;
+    if (x.status < 200 || x.status >= 300) return cb(new Error("Failed " + path + " " + x.status));
+    try { cb(null, JSON.parse(x.responseText)); }
+    catch(e) { cb(new Error("Parse " + path + " " + e)); }
   };
-  x.onerror=function(){cb(new Error("Network "+path));};
+  x.onerror = function() { cb(new Error("Network " + path)); };
   x.send(null);
 }
-function qp(n){var m=new RegExp("[?&]"+n+"=([^&]+)").exec(location.search);return m?decodeURIComponent(m[1]):"";}
-var id=qp("id"); var box=document.getElementById("profile");
-loadJson("data/faculty_index.json",function(err,faculty){
-  if(err){box.innerHTML="<pre>"+esc(String(err))+"</pre>";return;}
-  faculty=faculty||[];
-  var f=null; for(var i=0;i<faculty.length;i++)if(String(faculty[i].id)===String(id)){f=faculty[i];break;}
-  if(!f){box.innerHTML="<div class='card' style='padding:16px;'>Not found</div>";return;}
-  box.innerHTML='<h2>'+esc(f.name||"")+'</h2><div style="opacity:.8;">'+esc(f.title||"")+'</div><div class="card" style="padding:16px; margin-top:12px;">'+esc(f.summary||"")+'</div>';
-});
-})();</script>
+  function qp(n) {
+    var m = new RegExp("[?&]"+n+"=([^&]+)").exec(location.search);
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+  var id = qp("id");
+  var box = document.getElementById("profile");
+
+  function pills(items) {
+    items = Array.isArray(items) ? items : [];
+    if (!items.length) return "";
+    return '<div class="pill-row" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">' +
+      items.map(function(x){return '<span class="pill pill-link" style="padding:4px 10px; border-radius:999px; opacity:.9;">'+esc(x)+'</span>';}).join("") +
+      '</div>';
+  }
+
+  loadJson("data/faculty_index.json", function(err, faculty) {
+    if (err) {
+      box.innerHTML = "<pre style='white-space:pre-wrap; padding:16px;'>" + esc(String(err)) + "</pre>";
+      return;
+    }
+    faculty = faculty || [];
+    var f = null;
+    for (var i=0;i<faculty.length;i++) {
+      if (String(faculty[i].id) === String(id)) { f = faculty[i]; break; }
+    }
+    if (!f) {
+      box.innerHTML = "<div class='card' style='padding:16px;'>Profile not found.</div>";
+      return;
+    }
+
+    var tracks = Array.isArray(f.tracks) ? f.tracks : [];
+    var spec = Array.isArray(f.specialty_areas) ? f.specialty_areas : [];
+    var rkw = Array.isArray(f.research_keywords) ? f.research_keywords : [];
+    var synopsis = f.lab_synopsis || f.summary || "";
+
+    var html = "";
+    html += "<h1 class='page-title' style='margin:12px 0 0 0; color:var(--nyu-purple);'>" + esc(f.name || "") + "</h1>";
+    html += "<div class='page-subtitle' style='opacity:.85; margin-top:6px;'>" + esc(f.title || "") + "</div>";
+
+    if (tracks.length) {
+      html += "<div style='margin-top:14px; font-weight:650;'>Tracks</div>" + pills(tracks);
+    }
+    if (spec.length) {
+      html += "<div style='margin-top:14px; font-weight:650;'>Specialty areas</div>" + pills(spec);
+    }
+
+    html += "<div style='margin-top:14px; font-weight:650;'>Lab synopsis</div>";
+    html += "<div class='card' style='padding:16px; margin-top:8px; line-height:1.5;'>" + esc(synopsis) + "</div>";
+
+    if (rkw.length) {
+      html += "<div style='margin-top:14px; font-weight:650;'>Research keywords</div>";
+      html += "<div class='card' style='padding:16px; margin-top:8px;'><ul style='margin:0; padding-left:18px;'>";
+      for (var j=0;j<rkw.length;j++) {
+        html += "<li style='margin-top:6px;'>" + esc(rkw[j]) + "</li>";
+      }
+      html += "</ul></div>";
+    }
+
+    box.innerHTML = html;
+  });
+})();
+</script>
+
 </body></html>
