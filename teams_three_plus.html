@@ -1,105 +1,54 @@
-<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>IEHE Teams of three or more</title>
-<link rel="stylesheet" href="teams.css" />
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IEHE Teams of three or more</title><link rel="stylesheet" href="teams.css">
 </head><body>
 <header>
-  <div class="container">
-    <div class="brand">
-      <div class="brand-title">IEHE Grant Teams</div>
-      <div class="brand-subtitle">Faculty scoped team suggestions</div>
-    </div>
-  </div>
+  <h1>IEHE Grant Teams</h1>
+  <p>NYU Grossman School of Medicine</p>
 </header>
-
-<nav class="tabs">
-  <div class="container tabs-inner">
-    <a class="tab" href="index.html">Home</a>
-    <a class="tab" href="faculty.html">Faculty profiles</a>
-    <a class="tab" href="teams_two.html">Pairs</a>
-    <a class="tab" href="teams_three_plus.html">Teams of three or more</a>
-    <a class="tab" href="resources.html">Resources and model systems</a>
-    <a class="tab" href="approaches.html">Experimental approaches</a>
-  </div>
+<nav>
+  <a href="index.html">Home</a>
+  <a href="faculty.html">Faculty profiles</a>
+  <a href="teams_two.html">Pairs</a>
+  <a href="teams_three_plus.html">Teams of three or more</a>
+  <a href="resources.html">Resources and model systems</a>
+  <a href="approaches.html">Experimental approaches</a>
 </nav>
-<main id="app" class="container page">
-  <div class="card" style="padding:16px;">Loading…</div>
+<main class="container">
+  <h2>Teams of three or more</h2>
+  <div id="teams"></div>
 </main>
-<script>
-(function(){
-  var app = document.getElementById("app");
-  function esc(s) {
-  s = String(s == null ? "" : s);
-  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-}
-function loadJson(path, cb) {
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", path + "?cb=" + Date.now(), true);
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState !== 4) return;
-    if (xhr.status < 200 || xhr.status >= 300) return cb(new Error("Failed to load " + path + " status " + xhr.status));
-    try { cb(null, JSON.parse(xhr.responseText)); }
-    catch (e) { cb(new Error("JSON parse error for " + path + ": " + e)); }
+<script>(function(){function esc(s){s=String(s==null?"":s);return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+function loadJson(path, cb){
+  var x=new XMLHttpRequest();
+  x.open("GET",path+"?cb="+Date.now(),true);
+  x.onreadystatechange=function(){
+    if(x.readyState!==4)return;
+    if(x.status<200||x.status>=300)return cb(new Error("Failed "+path+" "+x.status));
+    try{cb(null,JSON.parse(x.responseText));}catch(e){cb(new Error("Parse "+path+" "+e));}
   };
-  xhr.onerror = function () { cb(new Error("Network error loading " + path)); };
-  xhr.send(null);
-}
-  function splitNames(v) {
-    if (v == null) return [];
-    if (Array.isArray(v)) return v;
-    return String(v).split(/[\n,;|]+/g).map(function(x){return x.trim();}).filter(Boolean);
-  }
-  function membersOf(t) {
-    if (Array.isArray(t.members)) return t.members;
-    if (t.team_members) return splitNames(t.team_members);
-    return [];
-  }
-
-  loadJson("data/faculty_index.json", function(e1, faculty){
-    if (e1) { app.innerHTML = '<pre style="white-space:pre-wrap; padding:16px;">'+esc(String(e1))+'</pre>'; return; }
-    loadJson("data/teams.json", function(e2, teams){
-      if (e2) { app.innerHTML = '<pre style="white-space:pre-wrap; padding:16px;">'+esc(String(e2))+'</pre>'; return; }
-      faculty = faculty || []; teams = teams || [];
-      var idByName = {};
-      for (var i=0;i<faculty.length;i++) idByName[String(faculty[i].name||"").toLowerCase()] = faculty[i].id;
-      function memberLink(name) {
-        var fid = idByName[String(name||"").toLowerCase()] || "";
-        return fid ? '<a href="profile.html?id='+encodeURIComponent(fid)+'">'+esc(name)+'</a>' : esc(name);
-      }
-      function isPair(t) {
-        var tt = String(t.team_type || t.team_size_category || "").toLowerCase();
-        if (tt === "pair") return true;
-        return membersOf(t).length === 2;
-      }
-      function isThreePlus(t) {
-        var tt = String(t.team_type || t.team_size_category || "").toLowerCase();
-        if (tt === "team") return true;
-        return membersOf(t).length >= 3;
-      }
-      var keep = [];
-      for (var k=0;k<teams.length;k++) {
-        var t = teams[k] || {};
-        if ("team" === "pair" && isPair(t)) keep.push(t);
-        if ("team" === "team" && isThreePlus(t)) keep.push(t);
-      }
-      var html = '<h1 class="page-title">Teams of three or more</h1><div class="page-subtitle">IEHE</div>';
-      html += '<div class="page-subtitle">Found: '+keep.length+'</div>';
-      for (var j=0;j<keep.length;j++) {
-        var t2 = keep[j] || {};
-        var m = membersOf(t2);
-        var mhtml = m.map(memberLink).join(", ");
-        html += '<div class="card" style="padding:16px; margin-top:12px;">';
-        html += '<div class="card-title">'+esc(t2.team_name || t2.proposed_title || "")+'</div>';
-        html += '<div class="card-body" style="margin-top:8px;">'+mhtml+'</div>';
-        if (t2.opportunity_title) html += '<div class="card-body" style="margin-top:8px;">Opportunity: '+esc(t2.opportunity_title)+'</div>';
-        if (t2.rationale) html += '<div class="card-body" style="margin-top:8px;">'+esc(t2.rationale)+'</div>';
-        html += '</div>';
-      }
-      app.innerHTML = html;
-    });
+  x.onerror=function(){cb(new Error("Network "+path));};
+  x.send(null);
+}function splitNames(v){if(v==null)return[];if(Array.isArray(v))return v;return String(v).split(/[\n,;|]+/g).map(x=>x.trim()).filter(Boolean);}
+function membersOf(t){if(Array.isArray(t.members))return t.members;if(t.team_members)return splitNames(t.team_members);return [];}
+function isPair(t){var tt=String(t.team_type||t.team_size_category||"").toLowerCase();if(tt==="pair")return true;return membersOf(t).length===2;}
+function isThreePlus(t){var tt=String(t.team_type||t.team_size_category||"").toLowerCase();if(tt==="team")return true;return membersOf(t).length>=3;}
+var box=document.getElementById("teams");
+loadJson("data/faculty_index.json",function(e1,faculty){
+  if(e1){box.innerHTML="<pre>"+esc(String(e1))+"</pre>";return;}
+  loadJson("data/teams.json",function(e2,teams){
+    if(e2){box.innerHTML="<pre>"+esc(String(e2))+"</pre>";return;}
+    faculty=faculty||[];teams=teams||[];
+    var idByName={}; for(var i=0;i<faculty.length;i++)idByName[String(faculty[i].name||"").toLowerCase()]=faculty[i].id;
+    function mlink(name){var fid=idByName[String(name||"").toLowerCase()]||"";return fid?'<a href="profile.html?id='+encodeURIComponent(fid)+'">'+esc(name)+'</a>':esc(name);}
+    var keep=[];
+    for(var k=0;k<teams.length;k++){var t=teams[k]||{}; if("team"==="pair" && isPair(t))keep.push(t); if("team"==="team" && isThreePlus(t))keep.push(t);}
+    var html='<div style="opacity:.8;">Found: '+keep.length+'</div>';
+    for(var j=0;j<keep.length;j++){var t2=keep[j]||{};var m=membersOf(t2);var mhtml=m.map(mlink).join(", ");
+      html+='<div class="card" style="padding:16px; margin-top:12px;"><div style="font-weight:700;">'+esc(t2.team_name||t2.proposed_title||"")+'</div><div style="margin-top:8px;">'+mhtml+'</div></div>';
+    }
+    box.innerHTML=html;
   });
-})();
-</script>
+});
+})();</script>
 </body></html>
