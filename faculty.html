@@ -1,12 +1,74 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta http-equiv="refresh" content="0; url=index.html"/>
-  <title>Faculty directory</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>IEHE Faculty</title>
+  <link rel="stylesheet" href="teams.css" />
 </head>
 <body>
-  <p>Redirecting to index.html</p>
+<div class="container" style="max-width:1100px; margin:0 auto; padding:18px 16px;">
+  <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:baseline;">
+    <a href="index.html" style="text-decoration:none;">Home</a>
+    <a href="faculty.html" style="text-decoration:none;">Faculty profiles</a>
+    <a href="teams_two.html" style="text-decoration:none;">Pairs</a>
+    <a href="teams_three_plus.html" style="text-decoration:none;">Teams of three or more</a>
+    <a href="resources.html" style="text-decoration:none;">Resources and model systems</a>
+    <a href="approaches.html" style="text-decoration:none;">Experimental approaches</a>
+  </div>
+</div>
+<main id="app"></main>
+<script>
+(function () {
+  var app = document.getElementById("app");
+  app.innerHTML = '<div class="container" style="max-width:1100px; margin:0 auto; padding:24px 16px;">Loading faculty...</div>';
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c];
+    });
+  }
+
+  fetch("data/faculty_index.json?cb=" + Date.now(), { cache: "no-store" })
+    .then(function (r) {
+      if (!r.ok) throw new Error("Failed to load faculty_index.json: " + r.status);
+      return r.json();
+    })
+    .then(function (faculty) {
+      faculty.sort(function (a, b) { return String(a.name || "").localeCompare(String(b.name || "")); });
+
+      var html = '<div class="container" style="max-width:1100px; margin:0 auto; padding:24px 16px;">';
+      html += '<h1 style="margin:0;">Faculty profiles</h1>';
+      html += '<div style="opacity:.85; margin-top:6px;">IEHE</div>';
+      html += '<div style="margin-top:16px; display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px;">';
+
+      for (var i = 0; i < faculty.length; i++) {
+        var f = faculty[i] || {};
+        var id = encodeURIComponent(f.id || "");
+        var kw = Array.isArray(f.keywords) ? f.keywords.slice(0, 8) : [];
+        var kwHtml = kw.length ? ('<div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;">' +
+          kw.map(function(k){return '<span style="padding:4px 10px; border-radius:999px; opacity:.85;">'+esc(k)+'</span>';}).join("") +
+          '</div>') : "";
+
+        html += '<a class="card faculty-card" href="profile.html?id=' + id + '" style="text-decoration:none; color:inherit;">';
+        html +=   '<div style="font-weight:700; font-size:1.05rem;">' + esc(f.name || "") + "</div>";
+        html +=   '<div style="opacity:.85; margin-top:.25rem;">' + esc(f.title || "") + "</div>";
+        html +=   '<div style="opacity:.92; margin-top:.5rem; line-height:1.35;">' + esc(f.summary || "") + "</div>";
+        html +=   kwHtml;
+        html += "</a>";
+      }
+
+      html += "</div></div>";
+      app.innerHTML = html;
+    })
+    .catch(function (err) {
+      console.error(err);
+      app.innerHTML = '<pre style="white-space:pre-wrap; padding:16px;">' + esc(String(err)) + "</pre>";
+    });
+})();
+</script>
 </body>
 </html>

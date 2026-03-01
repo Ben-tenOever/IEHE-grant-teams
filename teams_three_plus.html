@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>IEHE Pairs</title>
+  <title>IEHE Teams of three or more</title>
   <link rel="stylesheet" href="teams.css" />
 </head>
 <body>
@@ -50,11 +50,11 @@
     }
 
     teams = teams.filter(function(t) {
-      return String(t.team_type || "").toLowerCase() === "pair";
+      return String(t.team_type || "").toLowerCase() === "team";
     });
 
     var html = '<div class="container" style="max-width:1100px; margin:0 auto; padding:24px 16px;">';
-    html += '<h1 style="margin:0;">Pairs</h1>';
+    html += '<h1 style="margin:0;">Teams of three or more</h1>';
     html += '<div style="opacity:.85; margin-top:6px;">IEHE</div>';
     html += '<div style="margin-top:16px; display:flex; flex-direction:column; gap:12px;">';
 
