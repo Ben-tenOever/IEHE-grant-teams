@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Faculty by term</title>
+  <link rel="stylesheet" href="teams.css" />
+</head>
+<body>
+<header>
+  <div class="container">
+    <div style="font-weight:700; font-size:1.05rem; color:var(--nyu-purple);">Faculty by term</div>
+    <div style="opacity:.8;">Filtered faculty list</div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="container tabs-inner">
+    <a class="tab" href="index.html">Home</a>
+    <a class="tab" href="faculty.html">Faculty profiles</a>
+  </div>
+</nav>
+
+<main class="container page">
+  <h1 class="page-title" id="title">Faculty</h1>
+  <div class="page-subtitle" id="subtitle"></div>
+  <div id="cards" class="grid"></div>
+</main>
+
+<script>
+(function(){
+  function esc(s){
+    s = String(s == null ? "" : s);
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+  function loadJson(path, cb){
+    var x = new XMLHttpRequest();
+    x.open("GET", path + "?cb=" + Date.now(), true);
+    x.onreadystatechange = function(){
+      if (x.readyState !== 4) return;
+      if (x.status < 200 || x.status >= 300) return cb(new Error("Failed " + path + " " + x.status));
+      try { cb(null, JSON.parse(x.responseText)); } catch(e){ cb(new Error("Parse " + path + " " + e)); }
+    };
+    x.onerror = function(){ cb(new Error("Network " + path)); };
+    x.send(null);
+  }
+
+  var params = new URLSearchParams(location.search);
+  var term = (params.get("term") || "").trim();
+  document.getElementById("title").textContent = term ? ("Faculty matching: " + term) : "Faculty";
+  document.getElementById("subtitle").innerHTML = term
+    ? ('Click <a href="faculty.html">Faculty profiles</a> to return to the full roster.')
+    : ('Click <a href="faculty.html">Faculty profiles</a> to browse the full roster.');
+
+  var cards = document.getElementById("cards");
+
+  loadJson("data/faculty_index.json", function(err, faculty){
+    if (err) { cards.innerHTML = "<pre style='white-space:pre-wrap; padding:16px;'>" + esc(String(err)) + "</pre>"; return; }
+    faculty = faculty || [];
+
+    var t = term.toLowerCase();
+    function matches(f){
+      if (!t) return True;
+      var name = String(f.name || "").toLowerCase();
+      var title = String(f.title || "").toLowerCase();
+      var summary = String(f.summary || "").toLowerCase();
+      var kws = Array.isArray(f.keywords) ? f.keywords.map(x => String(x||"").toLowerCase()) : [];
+      if (kws.some(k => k.includes(t))) return true;
+      if (title.includes(t) || summary.includes(t) || name.includes(t)) return true;
+      return false;
+    }
+
+    // JS True fix
+    function isMatch(f){
+      if (!t) return true;
+      var name = String(f.name || "").toLowerCase();
+      var title = String(f.title || "").toLowerCase();
+      var summary = String(f.summary || "").toLowerCase();
+      var kws = Array.isArray(f.keywords) ? f.keywords.map(function(x){return String(x||"").toLowerCase();}) : [];
+      if (kws.some(function(k){return k.indexOf(t) !== -1;})) return true;
+      if (title.indexOf(t) !== -1 || summary.indexOf(t) !== -1 || name.indexOf(t) !== -1) return true;
+      return false;
+    }
+
+    var filtered = faculty.filter(isMatch);
+    filtered.sort(function(a,b){ return String(a.name||"").localeCompare(String(b.name||"")); });
+
+    var html = "";
+    for (var i=0;i<filtered.length;i++){
+      var f = filtered[i] || {};
+      var id = encodeURIComponent(f.id || "");
+      html += '<a class="card faculty-card" href="profile.html?id=' + id + '" style="text-decoration:none; color:inherit;">';
+      html +=   '<div class="card-title">' + esc(f.name || "") + '</div>';
+      html +=   '<div class="card-subtitle">' + esc(f.title || "") + '</div>';
+      html +=   '<div class="card-body">' + esc(f.summary || "") + '</div>';
+      html += '</a>';
+    }
+    cards.innerHTML = html || "<div class='card' style='padding:16px;'>No matches found.</div>";
+  });
+})();
+</script>
+</body>
+</html>

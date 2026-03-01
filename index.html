@@ -3,6 +3,17 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>IEHE Grant Teams</title>
 <link rel="stylesheet" href="teams.css">
+<style id="term-pill-style">
+  .pill-link {
+    background: var(--nyu-purple);
+    color: #fff !important;
+    border: 1px solid var(--nyu-purple);
+    text-decoration: none !important;
+    display: inline-block;
+  }
+  .pill-link:hover { opacity: 0.9; }
+  .ov-title, .ov-subtitle { color: var(--nyu-purple); }
+</style>
 </head><body>
 <header>
   <h1>AI Grant and Collaboration Initiative</h1>
@@ -21,7 +32,7 @@
 
 <main class="container">
 <section class="card" id="group-overview" style="padding:16px; margin-top:12px;">
-  <div style="font-weight:700; font-size:1.05rem;">About this group</div>
+  <div style="font-weight:700; font-size:1.05rem;" class="ov-title">About this group</div>
   <div id="group-overview-text" style="margin-top:10px; opacity:.9; line-height:1.45;"></div>
 
   <div style="margin-top:14px; display:flex; gap:16px; flex-wrap:wrap;">
@@ -33,11 +44,11 @@
 
   <div style="margin-top:14px; display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px;">
     <div>
-      <div style="font-weight:650;">Top themes</div>
+      <div style="font-weight:650;" class="ov-subtitle">Top themes</div>
       <div id="themes" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px;"></div>
     </div>
     <div>
-      <div style="font-weight:650;">Common approaches</div>
+      <div style="font-weight:650;" class="ov-subtitle">Common approaches</div>
       <div id="approaches" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px;"></div>
     </div>
   </div>
@@ -59,8 +70,11 @@
       document.getElementById("stat-opps").textContent = d.stats && d.stats.opportunities_covered != null ? d.stats.opportunities_covered : "";
 
       function pills(el, items){
-        el.innerHTML = (items || []).slice(0,10).map(x => '<span class="pill" style="padding:4px 10px; border-radius:999px; opacity:.85;">' + esc(x) + '</span>').join("");
-      }
+  el.innerHTML = (items || []).slice(0,10).map(function(x){
+    var term = encodeURIComponent(x);
+    return '<a class="pill pill-link" href="faculty_term.html?term=' + term + '">' + esc(x) + '</a>';
+  }).join("");
+}
       pills(document.getElementById("themes"), d.top_themes);
       pills(document.getElementById("approaches"), d.top_approaches);
     })
