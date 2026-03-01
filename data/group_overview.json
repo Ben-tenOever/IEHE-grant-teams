@@ -1,0 +1,31 @@
+{
+  "label": "IEHE",
+  "overview": "IEHE brings together 21 investigators working across hypertension, medication adherence, social determinants of health, cardiovascular disparities, health disparities. Collectively, the group spans strengths in implementation, clinical, trial, patient, structural. This site provides within group pair and multi investigator team suggestions derived only from the group roster to keep matches in scope.",
+  "stats": {
+    "faculty_count": 21,
+    "pairs_count": 786,
+    "teams3plus_count": 300,
+    "opportunities_covered": 786
+  },
+  "top_themes": [
+    "hypertension",
+    "medication adherence",
+    "social determinants of health",
+    "cardiovascular disparities",
+    "health disparities",
+    "health equity",
+    "health systems",
+    "implementation science",
+    "primary care",
+    "structural racism"
+  ],
+  "top_approaches": [
+    "implementation",
+    "clinical",
+    "trial",
+    "patient",
+    "structural",
+    "cohort",
+    "human"
+  ]
+}
