@@ -1,4 +1,33 @@
+import re
 import json, re, math
+
+ALLOWED_TOKENS = {
+    "DARPA": ["darpa"],
+    "NIH": ["national institutes of health", "nih"],
+    "NSF": ["national science foundation", "u.s. national science foundation", "nsf"],
+    "AHRQ": ["agency for health care research and quality", "ahrq"],
+    "CDC": ["centers for disease control", "centers for disease control and prevention", "disease control and prevention", "cdc"],
+}
+
+def _norm(x):
+    return re.sub(r"\s+", " ", str(x or "").lower()).strip()
+
+def agency_ok(o):
+    blob = " | ".join([
+        _norm(o.get("agency_name")),
+        _norm(o.get("agency")),
+        _norm(o.get("agency_code")),
+        _norm(o.get("subagency_name")),
+        _norm(o.get("subagency")),
+        _norm(o.get("department_name")),
+        _norm(o.get("department")),
+    ])
+    for _, toks in ALLOWED_TOKENS.items():
+        for t in toks:
+            if t in blob:
+                return True
+    return False
+
 from itertools import combinations
 
 ALLOWED = {"DARPA","NIH","NSF","AHRQ","CDC"}
@@ -126,10 +155,9 @@ def main():
     kept_opps = 0
 
     for o in opps:
-        agency = (o.get("agency_name") or o.get("agency") or "").strip()
-        if agency not in ALLOWED:
+        if not agency_ok(o):
             continue
-
+        agency = (o.get("agency_name") or o.get("agency") or "").strip()
         kept_opps += 1
         title = o.get("opportunity_title") or o.get("title") or ""
         desc = o.get("synopsis") or o.get("description") or ""
@@ -176,7 +204,7 @@ def main():
             overlaps = list(dict.fromkeys(overlaps))[:8]
 
             out.append({
-                "agency_name": agency,
+                "agency_name": agency or (o.get("agency_name") or o.get("agency") or ""),
                 "opportunity_id": o.get("opportunity_id") or o.get("id"),
                 "opportunity_number": o.get("opportunity_number") or o.get("number"),
                 "opportunity_title": title,
