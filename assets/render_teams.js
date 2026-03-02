@@ -177,7 +177,7 @@ function renderCard(rec, opts = {}) {
     el("summary", { class: "summary", text: "Show rationale and aims" }),
     body
   ]);
-  if (opts.openByDefault) details.open = true;
+  details.open = true;
 
   return el("div", { class: "card" }, [header, teamLine, details]);
 }
