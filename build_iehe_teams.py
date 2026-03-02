@@ -170,6 +170,8 @@ def main():
             s = cosine(fv, ov)
             scores.append((s, i))
         scores.sort(reverse=True)
+        if scores[0][0] < 0.08:
+            continue
 
         topN = [i for s,i in scores[:8] if s > 0.0] or [scores[0][1], scores[1][1]]
 
@@ -223,10 +225,10 @@ def main():
                 "aims_or_projects": aims,
             })
 
-        for _, ij in pair_cands[:5]:
+        for _, ij in pair_cands[:2]:
             emit(ij, "small")
 
-        for _, ijk in tri_cands[:5]:
+        for _, ijk in tri_cands[:2]:
             emit(ijk, "large")
 
     json.dump(out, open("data/teams.json","w"), indent=2)
