@@ -197,7 +197,7 @@ def main():
         domain = pick_domain(title + " " + desc)
         aims = aims_for(domain)
 
-        def emit(member_idx_tuple, size_cat):
+        def emit(member_idx_tuple, size_cat, team_score):
             mem_names = [faculty_name[i] for i in member_idx_tuple]
             overlaps = []
             for i in member_idx_tuple:
@@ -216,6 +216,7 @@ def main():
                 "opp_status": o.get("opp_status") or o.get("status"),
                 "team_members": "; ".join(mem_names),
                 "team_size_category": size_cat,
+                "team_score": float(team_score),
                 "proposed_title": f"{title}: implementation and equity focused evaluation",
                 "rationale": (
                     f"Selected to align with the opportunity by combining complementary implementation and outcomes expertise across "
@@ -225,11 +226,11 @@ def main():
                 "aims_or_projects": aims,
             })
 
-        for _, ij in pair_cands[:2]:
-            emit(ij, "small")
+        for team_score, ij in pair_cands[:2]:
+            emit(ij, "small", team_score)
 
-        for _, ijk in tri_cands[:2]:
-            emit(ijk, "large")
+        for team_score, ijk in tri_cands[:2]:
+            emit(ijk, "large", team_score)
 
     json.dump(out, open("data/teams.json","w"), indent=2)
     print("kept_opps:", kept_opps)
