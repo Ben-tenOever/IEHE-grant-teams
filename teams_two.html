@@ -16,8 +16,14 @@
   </div>
 </div>
 <main class="container" style="max-width:1100px;">
-  <h2 style="color:var(--nyu-purple); margin:0;">Pairs</h2>
-  <div id="teams" data-json="data/teams.json" data-open="1" data-expanded="1"></div>
+    <h2 style="color:var(--nyu-purple); margin:0;">Pairs</h2>
+
+  <div style="display:flex; gap:12px; align-items:center; margin:14px 0 10px 0; flex-wrap:wrap;">
+    <input id="search" type="text" placeholder="Search opportunities, agencies, or names..." style="flex:1; min-width:260px; padding:10px 12px; border:1px solid #ddd; border-radius:10px;">
+    <div id="count" style="opacity:.75;"></div>
+  </div>
+
+  <div id="cards" data-json="data/teams.json" data-open="1" data-expanded="1"></div>
 </main>
 
   <script src="assets/render_teams.js?v=20260302c"></script>
